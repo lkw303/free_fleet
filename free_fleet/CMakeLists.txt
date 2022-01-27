@@ -14,6 +14,10 @@ include(GNUInstallDirs)
 
 find_package(CycloneDDS REQUIRED)
 
+find_package(PahoMqttCpp 1.2.0 REQUIRED)
+
+find_package(Protobuf REQUIRED)
+
 # -----------------------------------------------------------------------------
 
 add_library(free_fleet SHARED
@@ -26,7 +30,18 @@ add_library(free_fleet SHARED
   src/messages/FleetMessages.c
   src/messages/message_utils.cpp
   src/dds_utils/common.cpp
+
+  src/ClientMqtt.cpp
+  src/ClientMqttImpl.cpp
+  src/configs/ClientMqttConfig.cpp
+  src/ServerMqtt.cpp
+  src/ServerMqttImpl.cpp
+  src/configs/ServerMqttConfig.cpp
+  src/messages/mqtt_message_utils.cpp
+  src/messages/FleetMessages.pb.cc
+  src/messages/FleetMessages.pb.h
 )
+
 target_include_directories(free_fleet
   PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
@@ -36,6 +51,9 @@ target_link_libraries(free_fleet
   CycloneDDS::ddsc
   ssl
   crypto
+  paho-mqtt3as
+  paho-mqttpp3
+  ${Protobuf_LIBRARIES}
 )
 
 # -----------------------------------------------------------------------------
@@ -53,11 +71,13 @@ foreach(target ${testing_targets})
     src/tests/${target}.cpp
     src/dds_utils/common.cpp
     src/messages/FleetMessages.c
+    src/messages/FleetMessages.pb.cc
   )
   target_link_libraries(${target}
     CycloneDDS::ddsc
     ssl
     crypto
+    ${Protobuf_LIBRARIES}
   )
 endforeach()
 
@@ -80,7 +100,7 @@ install(
   DESTINATION lib
 )
 install(
-  EXPORT free_fleet-targets 
+  EXPORT free_fleet-targets
   DESTINATION lib/cmake/free_fleet
 )
 
@@ -92,7 +112,7 @@ install(
   PATTERN ".svn" EXCLUDE
 )
 install(
-  FILES package.xml 
+  FILES package.xml
   DESTINATION share/free_fleet
 )
 

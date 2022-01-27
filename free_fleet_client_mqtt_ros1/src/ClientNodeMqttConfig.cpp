@@ -17,14 +17,14 @@
 
 #include <cstdio>
 
-#include "ClientNodeConfig.hpp"
+#include "ClientNodeMqttConfig.hpp"
 
 namespace free_fleet
 {
 namespace ros1
 {
 
-void ClientNodeConfig::get_param_if_available(
+void ClientNodeMqttConfig::get_param_if_available(
     const ros::NodeHandle& _node, const std::string& _key,
     std::string& _param_out)
 {
@@ -37,7 +37,7 @@ void ClientNodeConfig::get_param_if_available(
   }
 }
 
-void ClientNodeConfig::get_param_if_available(
+void ClientNodeMqttConfig::get_param_if_available(
     const ros::NodeHandle& _node, const std::string& _key,
     int& _param_out)
 {
@@ -50,7 +50,7 @@ void ClientNodeConfig::get_param_if_available(
   }
 }
 
-void ClientNodeConfig::get_param_if_available(
+void ClientNodeMqttConfig::get_param_if_available(
     const ros::NodeHandle& _node, const std::string& _key,
     double& _param_out)
 {
@@ -63,7 +63,7 @@ void ClientNodeConfig::get_param_if_available(
   }
 }
 
-void ClientNodeConfig::print_config() const
+void ClientNodeMqttConfig::print_config() const
 {
   printf("ROS 1 CLIENT CONFIGURATION\n");
   printf("  fleet name: %s\n", fleet_name.c_str());
@@ -83,29 +83,35 @@ void ClientNodeConfig::print_config() const
   printf("    map frame: %s\n", map_frame.c_str());
   printf("    robot frame: %s\n", robot_frame.c_str());
   printf("CLIENT-SERVER DDS CONFIGURATION\n");
-  printf("  dds domain: %d\n", dds_domain);
+  printf("  mqtt server address: %s\n", mqtt_server_address.c_str());
   printf("  TOPICS\n");
-  printf("    robot state: %s\n", dds_state_topic.c_str());
-  printf("    mode request: %s\n", dds_mode_request_topic.c_str());
-  printf("    path request: %s\n", dds_path_request_topic.c_str());
+  printf("    robot state: %s\n", mqtt_state_topic.c_str());
+  printf("    mode request: %s\n", mqtt_mode_request_topic.c_str());
+  printf("    path request: %s\n", mqtt_path_request_topic.c_str());
   printf("    destination request: %s\n",
-      dds_destination_request_topic.c_str());
+      mqtt_destination_request_topic.c_str());
+  printf("    QOS: %d\n", QOS);
+  printf("    LWTPAYLOAD: %s\n", LWTPAYLOAD.c_str());
+
 }
 
-ClientConfig ClientNodeConfig::get_client_config() const
+ClientMqttConfig ClientNodeMqttConfig::get_client_config() const
 {
-  ClientConfig client_config;
-  client_config.dds_domain = dds_domain;
-  client_config.dds_state_topic = dds_state_topic;
-  client_config.dds_mode_request_topic = dds_mode_request_topic;
-  client_config.dds_path_request_topic = dds_path_request_topic;
-  client_config.dds_destination_request_topic = dds_destination_request_topic;
+  ClientMqttConfig client_config;
+  client_config.mqtt_server_address = mqtt_server_address;
+  client_config.mqtt_client_id = mqtt_client_id;
+  client_config.mqtt_robot_state_topic = mqtt_state_topic;
+  client_config.mqtt_mode_request_topic = mqtt_mode_request_topic;
+  client_config.mqtt_path_request_topic = mqtt_path_request_topic;
+  client_config.mqtt_destination_request_topic = mqtt_destination_request_topic;
+  client_config.LWTPAYLOAD = LWTPAYLOAD;
+  client_config.QOS = QOS;
   return client_config;
 }
 
-ClientNodeConfig ClientNodeConfig::make()
+ClientNodeMqttConfig ClientNodeMqttConfig::make()
 {
-  ClientNodeConfig config;
+  ClientNodeMqttConfig config;
   ros::NodeHandle node_private_ns("~");
   config.get_param_if_available(
       node_private_ns, "fleet_name", config.fleet_name);
@@ -125,14 +131,20 @@ ClientNodeConfig ClientNodeConfig::make()
   config.get_param_if_available(
       node_private_ns, "docking_trigger_server_name", config.docking_trigger_server_name);
   config.get_param_if_available(
-      node_private_ns, "dds_domain", config.dds_domain);
+      node_private_ns, "mqtt_domain", config.mqtt_server_address);
   config.get_param_if_available(
-      node_private_ns, "dds_mode_request_topic", config.dds_mode_request_topic);
+      node_private_ns, "mqtt_client_id", config.mqtt_client_id);
   config.get_param_if_available(
-      node_private_ns, "dds_path_request_topic", config.dds_path_request_topic);
+      node_private_ns, "mqtt_mode_request_topic", config.mqtt_mode_request_topic);
   config.get_param_if_available(
-      node_private_ns, "dds_destination_request_topic",
-      config.dds_destination_request_topic);
+      node_private_ns, "mqtt_path_request_topic", config.mqtt_path_request_topic);
+  config.get_param_if_available(
+      node_private_ns, "mqtt_destination_request_topic",
+      config.mqtt_destination_request_topic);
+  config.get_param_if_available(
+      node_private_ns, "QOS", config.QOS);
+  config.get_param_if_available(
+      node_private_ns, "LWTPAYLOAD", config.LWTPAYLOAD);
   config.get_param_if_available(
       node_private_ns, "wait_timeout", config.wait_timeout);
   config.get_param_if_available(
